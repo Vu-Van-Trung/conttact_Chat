@@ -1,0 +1,39 @@
+name: pulse
+description: Pulse - The heartbeat of real-time communication.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  shared_preferences: ^2.5.4
+  pin_code_fields: ^8.0.1
+  google_fonts: ^6.1.0
+  image_picker: ^1.2.1
+  http: ^1.6.0
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  google_sign_in: ^6.2.1
+  firebase_messaging: ^15.2.10
+  flutter_launcher_icons: ^0.13.1
+  socket_io_client: ^3.1.4
+  overlay_support: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  image_path: "assets/icon.png"
+  android: true
+  ios: true
+

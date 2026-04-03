@@ -1,0 +1,35 @@
+﻿Analyzing Android...                                            
+
+   info - The private field _isSending could be 'final' - lib\features\chat\screens\chat_detail_screen.dart:23:8 - prefer_final_fields
+   info - Don't invoke 'print' in production code - lib\screens\home_screen.dart:43:11 - avoid_print
+  error - The class 'GoogleSignIn' doesn't have an unnamed constructor - lib\services\auth_service.dart:11:38 - new_with_undefined_constructor_default
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:49:7 - avoid_print
+  error - The method 'signIn' isn't defined for the type 'GoogleSignIn' - lib\services\auth_service.dart:97:67 - undefined_method
+   info - Uses 'await' on an instance of 'GoogleSignInAuthentication', which is not a subtype of 'Future' - lib\services\auth_service.dart:102:53 - await_only_futures
+  error - The getter 'accessToken' isn't defined for the type 'GoogleSignInAuthentication' - lib\services\auth_service.dart:104:33 - undefined_getter
+   info - The imported package 'socket_io_client' isn't a dependency of the importing package - test_backend.dart:3:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: 'package:socket_io_client/socket_io_client.dart' - test_backend.dart:3:8 - uri_does_not_exist
+   info - The prefix 'IO' isn't a lower_case_with_underscores identifier - test_backend.dart:3:60 - library_prefixes
+   info - Don't invoke 'print' in production code - test_backend.dart:10:3 - avoid_print
+   info - Use 'const' for final variables initialized to a constant value - test_backend.dart:14:3 - prefer_const_declarations
+   info - Don't invoke 'print' in production code - test_backend.dart:17:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:27:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:36:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:49:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:51:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:55:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:60:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:75:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:77:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:80:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:84:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:94:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:96:5 - avoid_print
+   info - Use 'const' with the constructor to improve performance - test_backend.dart:99:20 - prefer_const_constructors
+   info - Don't invoke 'print' in production code - test_backend.dart:100:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:110:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:113:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_backend.dart:119:5 - avoid_print
+

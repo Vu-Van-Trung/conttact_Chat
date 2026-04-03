@@ -1,0 +1,23 @@
+Danh sách các thay đổi để hoàn thiện chức năng Đăng nhập / Đăng ký Client-Server (TOTP):
+
+1. Server (Node.js & Express):
+   - Mở rộng Model `User` (file: `server/models/user.js`): 
+     Thêm các trường dữ liệu `email`, `totpSecret`, `fullName`, `phoneNumber`, `gender`, `dateOfBirth`, `avatarPath`, `coverPath` để đồng bộ và tương thích với cấu trúc User model trên Flutter Client.
+   - Hoàn thiện tệp định tuyến xác thực (file `server/routes/auth.js`):
+     + API `POST /register`: Hỗ trợ đăng ký bằng `email`, `username`, `password`. Tự động tạo ngẫu nhiên chuỗi `totpSecret` 16 ký tự để phục vụ chức năng xác thực 2 bước (TOTP) trên Frontend.
+     + API `POST /login`: Hỗ trợ đăng nhập linh hoạt bằng cả `username` hoặc `email`. Cập nhật logic để trả về cờ `requiresTOTP: true` cùng `userId` (thay vì cấp ngay JWT token như cũ) để bắt người dùng chuyển qua màn hình điền TOTP.
+     + API `POST /verify-totp`: Endpoint mới dùng để đối chiếu mã TOTP. Nếu mã khớp (logic đang mock giống Frontend là code bắt đầu bằng '1' hoặc '123456'), server sẽ cấp phát và trả về JWT Auth token chính thức.
+     + Thêm các endpoint cấp lại mật khẩu: `/request-reset`, `/verify-reset`, `/reset-password`. Khi gọi endpoint reset, mật khẩu mới sẽ được mã hóa an toàn do đã kích hoạt Mongoose Middleware `bcrypt.hash`.
+
+2. Client (Flutter):
+   - Đập bỏ Mock Service và tích hợp API thực (file `lib/services/auth_service.dart`): 
+     + Xoá mảng tĩnh `_demoUsers` và độ trễ ngẫu nhiên (`Future.delayed`).
+     + Tích hợp thư viện `package:http/http.dart` để giao tiếp HTTP POST requests với server.
+     + Khai báo đường dẫn kết nối `baseUrl = 'http://10.0.2.2:3000/api/auth'` (sử dụng được trên Android Emulator). Nếu chạy trình giả lập iOS hoặc Web, hãy tự đổi về `http://localhost:3000/api/auth`.
+     + Viết lại chức năng `login()` lấy `tempUserId`, truyền qua `verifyTOTP()` lấy `User` model hoàn chỉnh và duyệt qua luồng sử dụng app.
+     + Viết lại các hàm phục vụ quy trình Quên mật khẩu.
+
+Dự án này đã sẵn sàng để hoạt động ở cả giao diện người dùng trỏ tới cơ sở dữ liệu!
+Quy trình: 
+1. Chạy Backend bằng Terminal: `cd server && npm install && npm run dev`. (Ghi chú cần thiết lập file `.env` với `MONGODB_URI`).
+2. Chạy Frontend Flutter Emulator để sử dụng (`flutter pub get` -> `flutter run`).

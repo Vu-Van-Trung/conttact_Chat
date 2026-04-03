@@ -1,0 +1,143 @@
+{
+  "project_info": {
+    "project_number": "332094720906",
+    "firebase_url": "https://vuvantrung-50605-default-rtdb.firebaseio.com",
+    "project_id": "vuvantrung-50605",
+    "storage_bucket": "vuvantrung-50605.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332094720906:android:c686fd729e30625bfb5673",
+        "android_client_info": {
+          "package_name": "com.example.login_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332094720906-k9fkg21it47vsl3cm7qhqthfonep6fnp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.login_app",
+            "certificate_hash": "943ed9450764dc70c1273dea10437ef8f6e1be90"
+          }
+        },
+        {
+          "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwyDKzQINI0mCcv-nloknD9eL7BHrAOVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "332094720906-358jkeuc8m6flmk35i1jv1qnd3ovcuck.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vuVanTrung"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332094720906:android:6b013a2bbf87f108fb5673",
+        "android_client_info": {
+          "package_name": "com.example.vu_van_trung"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332094720906-023snt6dmbk9oc13lo04jdtb6a9kvm0k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vu_van_trung",
+            "certificate_hash": "943ed9450764dc70c1273dea10437ef8f6e1be90"
+          }
+        },
+        {
+          "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwyDKzQINI0mCcv-nloknD9eL7BHrAOVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "332094720906-358jkeuc8m6flmk35i1jv1qnd3ovcuck.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vuVanTrung"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332094720906:android:7b9059b945867505fb5673",
+        "android_client_info": {
+          "package_name": "com.example.vuvantrung"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332094720906-s3i7ntfibtr1tb8mdfrur61t1l4of0rc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vuvantrung",
+            "certificate_hash": "943ed9450764dc70c1273dea10437ef8f6e1be90"
+          }
+        },
+        {
+          "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwyDKzQINI0mCcv-nloknD9eL7BHrAOVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332094720906-4bn299ff7t05hrhqgmf08k4qvq242fg3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "332094720906-358jkeuc8m6flmk35i1jv1qnd3ovcuck.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vuVanTrung"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
