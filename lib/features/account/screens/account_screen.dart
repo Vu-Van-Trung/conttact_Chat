@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../../widgets/gradient_background.dart';
 import '../../../services/auth_service.dart';
 import '../../../screens/login_screen.dart';
+import '../../../models/user.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/menu_item.dart';
 import 'edit_profile_screen.dart';
@@ -16,7 +18,7 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = authService.currentUser;
+    final user = authService.currentUser ?? _buildFallbackUser();
 
     return GradientBackground(
       child: SafeArea(
@@ -26,11 +28,10 @@ class AccountScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 10),
               // Profile Header
-              if (user != null)
-                ProfileHeader(
-                  user: user,
-                  authService: authService,
-                ),
+              ProfileHeader(
+                user: user,
+                authService: authService,
+              ),
               const SizedBox(height: 32),
               // Menu Card
               Padding(
@@ -116,6 +117,18 @@ class AccountScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  User _buildFallbackUser() {
+    final firebaseUser = firebase_auth.FirebaseAuth.instance.currentUser;
+    return User(
+      username: firebaseUser?.displayName ?? firebaseUser?.email ?? 'User',
+      email: firebaseUser?.email ?? '',
+      password: '',
+      totpSecret: '',
+      fullName: firebaseUser?.displayName,
+      avatarPath: firebaseUser?.photoURL,
     );
   }
 

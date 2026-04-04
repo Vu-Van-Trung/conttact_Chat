@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../widgets/gradient_background.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
@@ -23,10 +25,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _isSending = false;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _imagePicker = ImagePicker();
 
-  late String myUserId; 
-  late String receiverId;
+  late String myUserId;
+  String? receiverId;
   late String chatRoomId;
+  late bool isGroup;
 
   String getChatRoomId(String a, String b) {
     if (a.compareTo(b) > 0) {
@@ -36,14 +40,44 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  MessageType _parseMessageType(String? type) {
+    switch (type) {
+      case 'image':
+        return MessageType.image;
+      case 'file':
+        return MessageType.file;
+      case 'emoji':
+        return MessageType.emoji;
+      default:
+        return MessageType.text;
+    }
+  }
+
+  String _serializeType(MessageType type) {
+    switch (type) {
+      case MessageType.image:
+        return 'image';
+      case MessageType.file:
+        return 'file';
+      case MessageType.emoji:
+        return 'emoji';
+      case MessageType.text:
+        return 'text';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    myUserId = _auth.currentUser?.uid ?? "";
-    receiverId = widget.conversation.partner.id;
-    chatRoomId = getChatRoomId(myUserId, receiverId);
+    myUserId = _auth.currentUser?.uid ?? '';
+    isGroup = widget.conversation.isGroup;
+    receiverId = isGroup ? null : widget.conversation.partner.id;
+    chatRoomId = isGroup
+        ? widget.conversation.id
+        : getChatRoomId(myUserId, receiverId ?? widget.conversation.partner.id);
 
-    // Lắng nghe tin nhắn từ Firestore
+    _ensureChatRoom();
+
     _firestore
         .collection('chatRooms')
         .doc(chatRoomId)
@@ -63,15 +97,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           timestamp: t?.toDate() ?? DateTime.now(),
           isSender: isMyMessage,
           isRead: true,
+          type: _parseMessageType(data['type']?.toString()),
+          attachmentUrl: data['attachmentUrl']?.toString(),
+          attachmentName: data['attachmentName']?.toString(),
         );
       }).toList();
 
-      setState(() {
-        _messages = dbMessages;
-      });
+      setState(() => _messages = dbMessages);
     }, onError: (error) {
-       debugPrint('Error fetching messages: $error');
+      debugPrint('Error fetching messages: $error');
     });
+  }
+
+  Future<void> _ensureChatRoom() async {
+    final participants = isGroup
+        ? widget.conversation.memberIds
+        : [myUserId, receiverId ?? widget.conversation.partner.id];
+
+    final payload = <String, dynamic>{
+      'users': participants,
+      'groupMembers': isGroup ? participants : null,
+      'isGroup': isGroup,
+      'groupName': isGroup ? widget.conversation.partner.name : null,
+      'lastMessage': widget.conversation.lastMessageText ?? 'Bắt đầu trò chuyện',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    };
+    await _firestore.collection('chatRooms').doc(chatRoomId).set(payload, SetOptions(merge: true));
   }
 
   @override
@@ -91,15 +142,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  void _sendMessage() async {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
-    
-    setState(() => _isSending = true);
+
+    await _sendMessagePayload(
+      text: text,
+      type: MessageType.text,
+    );
     _messageController.clear();
+  }
+
+  Future<void> _sendMessagePayload({
+    required String text,
+    required MessageType type,
+    String? attachmentUrl,
+    String? attachmentName,
+  }) async {
+    setState(() => _isSending = true);
 
     try {
-      // Gửi tin nhắn lên Firestore
       await _firestore
           .collection('chatRooms')
           .doc(chatRoomId)
@@ -108,16 +170,31 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         'senderId': myUserId,
         'receiverId': receiverId,
         'text': text,
+        'type': _serializeType(type),
+        'attachmentUrl': attachmentUrl,
+        'attachmentName': attachmentName,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // Cập nhật thông tin phòng chat
+      final preview = switch (type) {
+        MessageType.image => 'Da gui mot hinh anh',
+        MessageType.file => 'Da gui tep: ${attachmentName ?? 'tap tin'}',
+        MessageType.emoji => text,
+        MessageType.text => text,
+      };
+
       await _firestore
           .collection('chatRooms')
-          .doc(chatRoomId).set({
-        'lastMessage': text,
+          .doc(chatRoomId)
+          .set({
+        'lastMessage': preview,
         'lastMessageTime': FieldValue.serverTimestamp(),
-        'users': [myUserId, receiverId],
+        'users': isGroup
+            ? widget.conversation.memberIds
+            : [myUserId, receiverId ?? widget.conversation.partner.id],
+        'groupMembers': isGroup ? widget.conversation.memberIds : null,
+        'isGroup': isGroup,
+        'groupName': isGroup ? widget.conversation.partner.name : null,
       }, SetOptions(merge: true));
 
       _scrollToBottom();
@@ -132,6 +209,93 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         setState(() => _isSending = false);
       }
     }
+  }
+
+  Future<void> _pickAndSendImage() async {
+    final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (image == null) return;
+    await _sendMessagePayload(
+      text: 'Hinh anh',
+      type: MessageType.image,
+      attachmentUrl: image.path,
+      attachmentName: image.name,
+    );
+  }
+
+  Future<void> _pickAndSendFile() async {
+    final result = await FilePicker.platform.pickFiles(withData: false);
+    final file = result?.files.first;
+    if (file == null) return;
+    await _sendMessagePayload(
+      text: file.name,
+      type: MessageType.file,
+      attachmentUrl: file.path,
+      attachmentName: file.name,
+    );
+  }
+
+  void _showAttachmentMenu() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.image_outlined, color: Colors.white),
+                title: const Text('Gui hinh anh', style: TextStyle(color: Colors.white)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickAndSendImage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.attach_file, color: Colors.white),
+                title: const Text('Gui tap tin', style: TextStyle(color: Colors.white)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickAndSendFile();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEmojiPicker() {
+    const emojis = ['😀', '😂', '😍', '🥳', '👍', '❤️', '🔥', '🎉', '🙏', '😎'];
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      builder: (_) {
+        return SafeArea(
+          child: GridView.count(
+            shrinkWrap: true,
+            crossAxisCount: 5,
+            padding: const EdgeInsets.all(16),
+            children: emojis
+                .map(
+                  (emoji) => IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      final current = _messageController.text;
+                      _messageController.text = '$current$emoji';
+                      _messageController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _messageController.text.length),
+                      );
+                    },
+                    icon: Text(emoji, style: const TextStyle(fontSize: 28)),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -149,7 +313,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: const Color(0xFF667EEA).withOpacity(0.3),
+                  backgroundColor: const Color(0xFF667EEA).withValues(alpha: 0.3),
                   backgroundImage: partner.avatarUrl != null
                       ? NetworkImage(partner.avatarUrl!)
                       : null,
@@ -196,10 +360,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ),
                   ),
                   Text(
-                    partner.isOnline ? 'Đang hoạt động' : (partner.lastSeen ?? 'Ngoại tuyến'),
+                    isGroup
+                        ? '${widget.conversation.memberIds.length} thanh vien'
+                        : (partner.isOnline ? 'Dang hoat dong' : (partner.lastSeen ?? 'Ngoai tuyen')),
                     style: TextStyle(
                       fontSize: 12,
-                      color: partner.isOnline
+                      color: (!isGroup && partner.isOnline)
                           ? const Color(0xFF4ECDC4)
                           : const Color.fromRGBO(255, 255, 255, 0.6),
                     ),
@@ -243,6 +409,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ChatInputField(
               controller: _messageController,
               onSend: _sendMessage,
+              onAttachmentTap: _showAttachmentMenu,
+              onEmojiTap: _showEmojiPicker,
               isSending: _isSending,
             ),
           ],

@@ -8,6 +8,8 @@ class Conversation {
   final int unreadCount;
   final String? lastMessageText;
   final DateTime? lastMessageTime;
+  final bool isGroup;
+  final List<String> memberIds;
 
   const Conversation({
     required this.id,
@@ -16,6 +18,8 @@ class Conversation {
     this.unreadCount = 0,
     this.lastMessageText,
     this.lastMessageTime,
+    this.isGroup = false,
+    this.memberIds = const [],
   });
 
   Message? get lastMessage {

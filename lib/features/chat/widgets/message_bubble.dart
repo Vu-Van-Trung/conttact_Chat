@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/message_model.dart';
 import '../../contacts/models/contact_model.dart';
 
@@ -14,6 +17,15 @@ class MessageBubble extends StatelessWidget {
 
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  ImageProvider? _attachmentProvider(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    if (kIsWeb) return null;
+    return FileImage(File(path));
   }
 
   @override
@@ -71,12 +83,53 @@ class MessageBubble extends StatelessWidget {
                     isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.text,
-                    style: const TextStyle(
+                    message.type == MessageType.emoji
+                        ? message.text
+                        : (message.type == MessageType.file
+                            ? (message.attachmentName ?? message.text)
+                            : message.text),
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 15,
+                      fontSize: message.type == MessageType.emoji ? 28 : 15,
                     ),
                   ),
+                  if (message.type == MessageType.image && _attachmentProvider(message.attachmentUrl) != null) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image(
+                        image: _attachmentProvider(message.attachmentUrl)!,
+                        height: 160,
+                        width: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 80,
+                          width: 180,
+                          alignment: Alignment.center,
+                          color: const Color.fromRGBO(255, 255, 255, 0.1),
+                          child: const Text('Khong tai duoc anh', style: TextStyle(color: Colors.white70)),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (message.type == MessageType.file) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(255, 255, 255, 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.insert_drive_file_outlined, color: Colors.white70, size: 16),
+                          SizedBox(width: 6),
+                          Text('Tap tin dinh kem', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,

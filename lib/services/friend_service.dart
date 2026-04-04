@@ -3,6 +3,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../features/contacts/models/contact_model.dart';
 
 class FriendService {
+      String _displayNameFromUser(Map<String, dynamic> data) {
+        final fullName = (data['fullName'] ?? '').toString().trim();
+        final username = (data['username'] ?? '').toString().trim();
+        final email = (data['email'] ?? '').toString().trim();
+
+        if (fullName.isNotEmpty) return fullName;
+        if (username.isNotEmpty) return username;
+        if (email.isNotEmpty) return email;
+        return 'Unknown';
+      }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -129,7 +140,7 @@ class FriendService {
     final data = doc.data() as Map<String, dynamic>;
     return Contact(
       id: doc.id,
-      name: data['username'] ?? data['email'] ?? 'Unknown',
+      name: _displayNameFromUser(data),
       phoneNumber: data['phoneNumber'] ?? '',
       avatarUrl: data['avatarUrl'],
       isOnline: data['isOnline'] ?? false,

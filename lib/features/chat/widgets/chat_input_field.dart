@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 class ChatInputField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
+  final VoidCallback onAttachmentTap;
+  final VoidCallback onEmojiTap;
   final bool isSending;
 
   const ChatInputField({
     super.key,
     required this.controller,
     required this.onSend,
+    required this.onAttachmentTap,
+    required this.onEmojiTap,
     this.isSending = false,
   });
 
@@ -30,9 +34,12 @@ class ChatInputField extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               color: const Color.fromRGBO(255, 255, 255, 0.6),
-              onPressed: () {
-                // Feature that is not implemented yet
-              },
+              onPressed: onAttachmentTap,
+            ),
+            IconButton(
+              icon: const Icon(Icons.emoji_emotions_outlined),
+              color: const Color.fromRGBO(255, 255, 255, 0.6),
+              onPressed: onEmojiTap,
             ),
             Expanded(
               child: Container(

@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,18 +27,39 @@ class AuthService {
     if (user != null) {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       String username = user.email ?? '';
+      String? fullName;
+      String? phoneNumber;
+      DateTime? dateOfBirth;
+      String? gender;
+      String? avatarPath;
+      String? coverPath;
       if (doc.exists) {
-        username = doc.data()?['username'] ?? username;
+        final data = doc.data() ?? <String, dynamic>{};
+        username = data['username'] ?? username;
+        fullName = data['fullName'];
+        phoneNumber = data['phoneNumber'];
+        final Timestamp? dobTimestamp = data['dateOfBirth'] as Timestamp?;
+        dateOfBirth = dobTimestamp?.toDate();
+        gender = data['gender'];
+        avatarPath = data['avatarPath'] ?? data['avatarUrl'];
+        coverPath = data['coverPath'] ?? data['coverUrl'];
       }
       _currentUser = User(
         username: username,
         email: user.email ?? '',
         password: '',
         totpSecret: '',
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        dateOfBirth: dateOfBirth,
+        gender: gender,
+        avatarPath: avatarPath,
+        coverPath: coverPath,
       );
       await _updateFCMToken(user.uid);
     }
   }
+
 
   Future<void> _updateFCMToken(String uid) async {
     try {
@@ -219,11 +238,20 @@ class AuthService {
     _currentUser = updatedUser;
     if (_firebaseAuth.currentUser != null) {
       try {
-        await _firestore.collection('users').doc(_firebaseAuth.currentUser!.uid).update({
+        await _firestore.collection('users').doc(_firebaseAuth.currentUser!.uid).set({
+          'email': updatedUser.email,
           'fullName': updatedUser.fullName,
           'phoneNumber': updatedUser.phoneNumber,
           'username': updatedUser.username,
-        });
+          'dateOfBirth': updatedUser.dateOfBirth,
+          'gender': updatedUser.gender,
+          'avatarPath': updatedUser.avatarPath,
+          'coverPath': updatedUser.coverPath,
+          // Keep compatibility with any screen still reading old keys.
+          'avatarUrl': updatedUser.avatarPath,
+          'coverUrl': updatedUser.coverPath,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         return true;
       } catch (e) {
         debugPrint('Error updating profile: $e');

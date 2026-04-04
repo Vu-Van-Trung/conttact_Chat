@@ -31,6 +31,24 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     _coverPath = widget.user.coverPath;
   }
 
+  @override
+  void didUpdateWidget(covariant ProfileHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.avatarPath != widget.user.avatarPath ||
+        oldWidget.user.coverPath != widget.user.coverPath) {
+      _avatarPath = widget.user.avatarPath;
+      _coverPath = widget.user.coverPath;
+    }
+  }
+
+  ImageProvider? _imageProvider(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    return FileImage(File(path));
+  }
+
   Future<void> _pickImage(bool isAvatar) async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -39,23 +57,39 @@ class _ProfileHeaderState extends State<ProfileHeader> {
       );
 
       if (image != null) {
+        final savedPath = image.path;
+
         setState(() {
           if (isAvatar) {
-            _avatarPath = image.path;
+            _avatarPath = savedPath;
           } else {
-            _coverPath = image.path;
+            _coverPath = savedPath;
           }
         });
 
         // Update user model via AuthService
         final updatedUser = widget.user.copyWith(
-          avatarPath: isAvatar ? image.path : _avatarPath,
-          coverPath: !isAvatar ? image.path : _coverPath,
+          avatarPath: isAvatar ? savedPath : _avatarPath,
+          coverPath: !isAvatar ? savedPath : _coverPath,
         );
-        await widget.authService.updateProfile(updatedUser);
+        final success = await widget.authService.updateProfile(updatedUser);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? (isAvatar ? 'Da cap nhat avatar' : 'Da cap nhat anh bia')
+                  : 'Khong luu duoc anh, vui long thu lai',
+            ),
+          ),
+        );
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cap nhat anh that bai: $e')),
+      );
     }
   }
 
@@ -90,9 +124,9 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: const Color.fromRGBO(255, 255, 255, 0.05),
-                      image: _coverPath != null
+                      image: _imageProvider(_coverPath) != null
                           ? DecorationImage(
-                              image: FileImage(File(_coverPath!)),
+                              image: _imageProvider(_coverPath)!,
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -162,9 +196,9 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                                     end: Alignment.bottomRight,
                                   )
                                 : null,
-                            image: _avatarPath != null
+                            image: _imageProvider(_avatarPath) != null
                                 ? DecorationImage(
-                                    image: FileImage(File(_avatarPath!)),
+                                    image: _imageProvider(_avatarPath)!,
                                     fit: BoxFit.cover,
                                   )
                                 : null,

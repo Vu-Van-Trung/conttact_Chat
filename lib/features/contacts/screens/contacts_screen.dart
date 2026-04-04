@@ -7,6 +7,7 @@ import '../../chat/models/conversation_model.dart';
 import '../../chat/screens/chat_detail_screen.dart';
 import 'add_friend_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -17,6 +18,7 @@ class ContactsScreen extends StatefulWidget {
 
 class _ContactsScreenState extends State<ContactsScreen> {
   final _friendService = FriendService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   List<Contact> _friends = [];
   List<Contact> _filteredFriends = [];
   String _searchQuery = '';
@@ -58,9 +60,24 @@ class _ContactsScreenState extends State<ContactsScreen> {
     });
   }
 
-  void _handleContactTap(Contact contact) {
+  String _directRoomId(String a, String b) {
+    return a.compareTo(b) > 0 ? '${a}_$b' : '${b}_$a';
+  }
+
+  Future<void> _handleContactTap(Contact contact) async {
+    final myId = _auth.currentUser?.uid;
+    if (myId == null) return;
+
+    final roomId = _directRoomId(myId, contact.id);
+    await FirebaseFirestore.instance.collection('chatRooms').doc(roomId).set({
+      'users': [myId, contact.id],
+      'isGroup': false,
+      'lastMessage': 'Bắt đầu trò chuyện',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
     final conversation = Conversation(
-      id: contact.id, // Using partner's ID as conversation ID placeholder, ChatDetailScreen will generate chatRoomId
+      id: roomId,
       partner: contact,
       messages: [],
     );
@@ -189,7 +206,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
                     
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(fromUser['username'] ?? fromUser['email'] ?? 'Người dùng', style: const TextStyle(color: Colors.white)),
+                      title: Text(
+                        fromUser['fullName'] ?? fromUser['username'] ?? fromUser['email'] ?? 'Người dùng',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                       subtitle: const Text('Muốn kết bạn với bạn', style: TextStyle(color: Colors.white60, fontSize: 12)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
